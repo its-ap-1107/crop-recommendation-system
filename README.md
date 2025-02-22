@@ -1,4 +1,4 @@
-# Insurance Risk Assessment Platform
+# AI-Sure
 
 A modern web application that helps users assess their health insurance risks and find suitable insurance providers using machine learning and AI-powered recommendations.
 
