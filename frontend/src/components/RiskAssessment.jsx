@@ -202,16 +202,30 @@ const AIAnalysis = ({ analysis }) => {
 
   return (
     <div className="mt-6">
-      <h4 className="text-base font-semibold text-gray-800 flex items-center mb-3">
-        <FaInfoCircle className="mr-2 text-blue-500" />
+      <h4 className="text-base font-semibold text-gray-800 mb-3">
         AI Health Analysis
       </h4>
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="prose max-w-none text-gray-700">
-          {analysis.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4">{paragraph}</p>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 gap-4">
+        {analysis.split('\n\n').map((section, index) => {
+          if (!section.trim()) return null;
+          const [title, ...content] = section.split('\n');
+          return (
+            <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+              {title && (
+                <h5 className="text-sm font-medium text-gray-800 mb-2">
+                  {title}
+                </h5>
+              )}
+              <div className="text-sm text-gray-600">
+                {content.map((paragraph, pIndex) => (
+                  <p key={pIndex} className="mb-2 last:mb-0">
+                    {paragraph.replace(/^- /, '')}
+                  </p>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

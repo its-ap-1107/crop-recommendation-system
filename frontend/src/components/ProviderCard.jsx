@@ -1,7 +1,6 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import { FaBuilding, FaCheckCircle, FaExternalLinkAlt, FaInfoCircle, FaShieldAlt } from 'react-icons/fa';
+import { FaBuilding, FaCheckCircle, FaExternalLinkAlt, FaShieldAlt } from 'react-icons/fa';
 
 const PlanFeature = ({ feature }) => (
   <div className="flex items-center text-gray-700 mb-2">
@@ -34,7 +33,6 @@ const ProviderCard = ({ provider }) => {
     name,
     description,
     rating,
-    premium_range,
     features = [],
     plan_types = [],
     links = {}
@@ -74,13 +72,6 @@ const ProviderCard = ({ provider }) => {
 
       <p className="text-gray-600 mb-4">{description}</p>
 
-      <div className="mb-4">
-        <div className="flex items-center text-gray-700 mb-2">
-          <FaInfoCircle className="mr-2 text-blue-500" />
-          <span>Premium Range: ${premium_range.min} - ${premium_range.max}/month</span>
-        </div>
-      </div>
-
       <div className="space-y-4">
         {plan_types.map((plan, index) => (
           <PlanType key={index} {...plan} />
@@ -118,10 +109,6 @@ ProviderCard.propTypes = {
     name: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     rating: PropTypes.number.isRequired,
-    premium_range: PropTypes.shape({
-      min: PropTypes.number.isRequired,
-      max: PropTypes.number.isRequired
-    }).isRequired,
     features: PropTypes.arrayOf(PropTypes.string),
     plan_types: PropTypes.arrayOf(PropTypes.shape({
       type: PropTypes.string.isRequired,

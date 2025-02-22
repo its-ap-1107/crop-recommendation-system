@@ -1,13 +1,13 @@
 import requests
 from typing import List, Dict, Any
 from ..config import Config
+from .prediction_service import BasePredictionService
 
-class SearchService:
+class SearchService(BasePredictionService):
     def __init__(self):
+        super().__init__()
         self.api_key = Config.TAVILY_API_KEY
-        self.groq_api_key = Config.GROQ_API_KEY
         self.base_url = "https://api.tavily.com/search"
-        self.groq_url = "https://api.groq.com/v1/completions"
         self.insurance_plans = {
             'essential_care': {
                 'name': 'Essential Care Plan',
@@ -98,7 +98,7 @@ class SearchService:
                 'best_for': ['premium_coverage', 'full_family_coverage', 'executives']
             }
         }
-    
+
     def calculate_risk_score(self, user_data):
         """Calculate risk score based on user health data."""
         risk_score = 0.0
@@ -155,6 +155,69 @@ class SearchService:
         risk_score = risk_score / 4.0  # Maximum possible score
         return min(risk_score, 1.0)
 
+    def generate_health_analysis(self, user_data, health_factors, positive_factors, risk_level):
+        """Generate a comprehensive health analysis based on user data."""
+        age = int(user_data.get('age', 0))
+        bmi = float(user_data.get('bmi', 0))
+        bp = float(user_data.get('blood_pressure', 0))
+        chol = float(user_data.get('cholesterol', 0))
+        
+        analysis = []
+        
+        # Health Status Analysis
+        analysis.append("Health Status Analysis")
+        if risk_level == 'high':
+            analysis.append("Your health profile indicates several areas requiring attention and proactive management.")
+        elif risk_level == 'moderate':
+            analysis.append("Your health profile shows some risk factors that would benefit from lifestyle modifications.")
+        else:
+            analysis.append("Your health profile generally indicates good health with some areas for optimization.")
+            
+        # Age-specific Recommendations
+        analysis.append("\nAge-specific Considerations")
+        if age >= 60:
+            analysis.append("- Regular health check-ups recommended every 6 months")
+            analysis.append("- Focus on preventive care and early intervention")
+            analysis.append("- Consider comprehensive coverage for age-related conditions")
+        elif age >= 45:
+            analysis.append("- Annual health check-ups recommended")
+            analysis.append("- Preventive screenings for common mid-life conditions")
+            analysis.append("- Balance between coverage and cost-effectiveness")
+        else:
+            analysis.append("- Regular health check-ups recommended annually")
+            analysis.append("- Focus on preventive care and healthy lifestyle")
+            analysis.append("- Consider basic coverage with wellness benefits")
+            
+        # Risk Factor Analysis
+        if health_factors:
+            analysis.append("\nKey Health Risks")
+            for factor in health_factors:
+                analysis.append(f"- {factor}")
+                
+        # Positive Factor Analysis
+        if positive_factors:
+            analysis.append("\nPositive Health Indicators")
+            for factor in positive_factors:
+                analysis.append(f"- {factor}")
+                
+        # Insurance Recommendations
+        analysis.append("\nInsurance Coverage Recommendations")
+        if risk_level == 'high':
+            analysis.append("- Comprehensive coverage with low deductibles")
+            analysis.append("- Extensive network of specialists")
+            analysis.append("- Coverage for pre-existing conditions")
+            analysis.append("- Preventive care benefits")
+        elif risk_level == 'moderate':
+            analysis.append("- Balanced coverage with moderate deductibles")
+            analysis.append("- Good network of providers")
+            analysis.append("- Wellness program benefits")
+        else:
+            analysis.append("- Basic coverage with preventive care benefits")
+            analysis.append("- Higher deductible options for lower premiums")
+            analysis.append("- Wellness program incentives")
+            
+        return "\n".join(analysis)
+
     def determine_recommended_plan(self, risk_score, user_data):
         """Determine the recommended insurance plan based on risk score and user data."""
         age = int(user_data.get('age', 0))
@@ -175,53 +238,57 @@ class SearchService:
             else:
                 return 'family_first'
 
-    def get_groq_analysis(self, user_data, health_factors, positive_factors, risk_level):
-        """Get comprehensive health analysis from Groq."""
+    def get_health_factors(self, user_data):
+        """Extract health risk factors from user data."""
+        health_factors = []
         try:
-            prompt = f"""Analyze the following health profile and provide a comprehensive insurance recommendation:
-
-Patient Profile:
-- Age: {user_data.get('age')}
-- Gender: {user_data.get('gender')}
-- BMI: {user_data.get('bmi')}
-- Blood Pressure: {user_data.get('blood_pressure')}
-- Cholesterol: {user_data.get('cholesterol')}
-- Smoker: {user_data.get('smoker')}
-- Exercise Frequency: {user_data.get('exercise_frequency')}
-- Family History: {user_data.get('family_history')}
-
-Risk Factors: {', '.join(health_factors) if health_factors else 'None'}
-Positive Factors: {', '.join(positive_factors) if positive_factors else 'None'}
-Overall Risk Level: {risk_level}
-
-Please provide:
-1. A detailed analysis of the patient's health status
-2. Specific health risks and preventive measures
-3. Recommended insurance coverage requirements
-4. Long-term health management suggestions
-5. Additional wellness recommendations"""
-
-            headers = {
-                "Authorization": f"Bearer {self.groq_api_key}",
-                "Content-Type": "application/json"
-            }
+            bmi = float(user_data.get('bmi', 0))
+            bp = float(user_data.get('blood_pressure', 0))
+            chol = float(user_data.get('cholesterol', 0))
             
-            payload = {
-                "model": "mixtral-8x7b-32768",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
-                "max_tokens": 1000
-            }
+            if bmi > 30:
+                health_factors.append("high_bmi")
+            if bp > 140:
+                health_factors.append("high_bp")
+            if str(user_data.get('smoker', '')).lower() == 'yes':
+                health_factors.append("smoker")
+            if chol > 200:
+                health_factors.append("high_cholesterol")
+            if str(user_data.get('exercise_frequency', '')).lower() == 'low':
+                health_factors.append("sedentary_lifestyle")
             
-            response = requests.post(self.groq_url, headers=headers, json=payload)
-            response.raise_for_status()
-            analysis = response.json()
+            if user_data.get('previous_conditions', 'none') != 'none':
+                health_factors.append(user_data['previous_conditions'])
             
-            return analysis['choices'][0]['message']['content']
+            if user_data.get('family_history', 'none') != 'none':
+                health_factors.append('family_history')
             
-        except Exception as e:
-            print(f"Error getting Groq analysis: {str(e)}")
-            return None
+            if int(user_data.get('age', 0)) >= 60:
+                health_factors.append('senior')
+            elif int(user_data.get('age', 0)) >= 45:
+                health_factors.append('middle_age')
+                
+        except (ValueError, TypeError) as e:
+            print(f"Error processing health factors: {str(e)}")
+        return health_factors
+
+    def get_positive_factors(self, user_data):
+        """Extract positive health factors from user data."""
+        positive_factors = []
+        try:
+            if str(user_data.get('exercise_frequency', '')).lower() in ['high', 'medium']:
+                positive_factors.append("Regular exercise routine")
+            if str(user_data.get('smoker', '')).lower() == 'no':
+                positive_factors.append("Non-smoker")
+            if float(user_data.get('bmi', 0)) >= 18.5 and float(user_data.get('bmi', 0)) <= 24.9:
+                positive_factors.append("Healthy BMI")
+            if float(user_data.get('blood_pressure', 0)) < 120:
+                positive_factors.append("Normal blood pressure")
+            if float(user_data.get('cholesterol', 0)) < 200:
+                positive_factors.append("Healthy cholesterol levels")
+        except (ValueError, TypeError) as e:
+            print(f"Error processing positive factors: {str(e)}")
+        return positive_factors
 
     def search_insurance_info(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         try:
@@ -235,8 +302,8 @@ Please provide:
             recommended_plan_key = self.determine_recommended_plan(risk_score, user_data)
             recommended_plan = self.insurance_plans[recommended_plan_key]
             
-            # Get AI analysis from Groq
-            ai_analysis = self.get_groq_analysis(user_data, health_factors, positive_factors, risk_level)
+            # Generate health analysis
+            analysis = self.generate_health_analysis(user_data, health_factors, positive_factors, risk_level)
             
             # Prepare matched providers
             matched_providers = []
@@ -267,7 +334,7 @@ Please provide:
                 'health_factors': health_factors,
                 'search_results': [],
                 'risk_score': risk_score,
-                'ai_analysis': ai_analysis,
+                'ai_analysis': analysis,
                 'risk_assessment': {
                     'risk_level': risk_level,
                     'risk_factors': health_factors,
@@ -310,59 +377,3 @@ Please provide:
                     }
                 }
             }
-
-    def get_health_factors(self, user_data):
-        """Extract health risk factors from user data."""
-        health_factors = []
-        try:
-            bmi = float(user_data.get('bmi', 0))
-            bp = float(user_data.get('blood_pressure', 0))
-            chol = float(user_data.get('cholesterol', 0))
-            
-            if bmi > 30:
-                health_factors.append("High BMI")
-            if bp > 140:
-                health_factors.append("High blood pressure")
-            if str(user_data.get('smoker', '')).lower() == 'yes':
-                health_factors.append("Smoker")
-            if chol > 200:
-                health_factors.append("High cholesterol")
-            if str(user_data.get('exercise_frequency', '')).lower() == 'low':
-                health_factors.append("Sedentary lifestyle")
-            
-            family_history = user_data.get('family_history', 'none')
-            if family_history != 'none':
-                condition_labels = {
-                    'heart_disease': 'heart disease',
-                    'diabetes': 'diabetes',
-                    'cancer': 'cancer',
-                    'asthma': 'asthma',
-                    'hypertension': 'hypertension',
-                    'stroke': 'stroke',
-                    'fatty_liver': 'fatty liver disease',
-                    'thyroid': 'thyroid disorders',
-                    'arthritis': 'arthritis',
-                    'obesity': 'obesity'
-                }
-                health_factors.append(f"Family history of {condition_labels.get(family_history, family_history)}")
-        except (ValueError, TypeError) as e:
-            print(f"Error processing health factors: {str(e)}")
-        return health_factors
-
-    def get_positive_factors(self, user_data):
-        """Extract positive health factors from user data."""
-        positive_factors = []
-        try:
-            if str(user_data.get('exercise_frequency', '')).lower() in ['high', 'medium']:
-                positive_factors.append("Regular exercise routine")
-            if str(user_data.get('smoker', '')).lower() == 'no':
-                positive_factors.append("Non-smoker")
-            if float(user_data.get('bmi', 0)) >= 18.5 and float(user_data.get('bmi', 0)) <= 24.9:
-                positive_factors.append("Healthy BMI")
-            if float(user_data.get('blood_pressure', 0)) < 120:
-                positive_factors.append("Normal blood pressure")
-            if float(user_data.get('cholesterol', 0)) < 200:
-                positive_factors.append("Healthy cholesterol levels")
-        except (ValueError, TypeError) as e:
-            print(f"Error processing positive factors: {str(e)}")
-        return positive_factors

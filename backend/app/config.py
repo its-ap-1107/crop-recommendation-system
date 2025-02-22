@@ -6,15 +6,8 @@ load_dotenv()
 
 class Config:
     # API Keys and Credentials
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
     MONGO_URI = os.getenv("MONGO_URI")
-    
-    # Groq Model Configuration
-    GROQ_MODEL = "llama-3.3-70b-versatile"  # Latest recommended model
-    GROQ_TEMPERATURE = 0.7
-    GROQ_MAX_TOKENS = 32768  # Maximum context window for llama-3.3-70b-versatile
-    GROQ_RESPONSE_MAX_TOKENS = 4096  # Maximum tokens for response
     
     # Risk Assessment Weights
     RISK_WEIGHTS: Dict[str, float] = {
@@ -34,9 +27,14 @@ class Config:
     # API Configuration
     CORS_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]  # Add your frontend URLs
     
+    # Server Configuration
+    HOST = "0.0.0.0"
+    PORT = 5000
+    DEBUG = True
+    
     @staticmethod
     def validate_config() -> None:
-        required_vars = ["GROQ_API_KEY", "TAVILY_API_KEY", "MONGO_URI"]
+        required_vars = ["TAVILY_API_KEY", "MONGO_URI"]
         missing = [var for var in required_vars if not getattr(Config, var)]
         if missing:
             raise ValueError(f"Missing required environment variables: {', '.join(missing)}") 
