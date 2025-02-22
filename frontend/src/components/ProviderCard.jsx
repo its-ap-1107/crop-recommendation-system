@@ -64,7 +64,7 @@ const ProviderCard = ({ provider }) => {
             rel="noopener noreferrer"
             className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Get Quote
+            Purchase Now
             <FaExternalLinkAlt className="ml-2 h-4 w-4" />
           </a>
         )}
@@ -86,20 +86,6 @@ const ProviderCard = ({ provider }) => {
           ))}
         </div>
       </div>
-
-      {links.details && (
-        <div className="mt-6">
-          <a
-            href={links.details}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-600 hover:text-indigo-800 flex items-center"
-          >
-            Learn More
-            <FaExternalLinkAlt className="ml-1 h-4 w-4" />
-          </a>
-        </div>
-      )}
     </motion.div>
   );
 };

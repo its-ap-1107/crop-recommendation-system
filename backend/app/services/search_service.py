@@ -290,6 +290,72 @@ class SearchService(BasePredictionService):
             print(f"Error processing positive factors: {str(e)}")
         return positive_factors
 
+    def calculate_premium(self, user_data, base_premium_range):
+        """Calculate personalized premium based on user health data."""
+        min_premium, max_premium = base_premium_range
+        risk_score = self.calculate_risk_score(user_data)
+        age = int(user_data.get('age', 0))
+        
+        # Age factor
+        if age >= 60:
+            age_multiplier = 1.4
+        elif age >= 45:
+            age_multiplier = 1.2
+        elif age >= 30:
+            age_multiplier = 1.1
+        else:
+            age_multiplier = 1.0
+            
+        # Risk score factor
+        risk_multiplier = 1.0 + (risk_score * 0.5)  # Max 50% increase based on risk
+        
+        # Calculate adjusted premiums
+        adjusted_min = int(min_premium * age_multiplier * risk_multiplier)
+        adjusted_max = int(max_premium * age_multiplier * risk_multiplier)
+        
+        return (adjusted_min, adjusted_max)
+
+    def calculate_match_score(self, user_data, plan):
+        """Calculate how well a plan matches user needs."""
+        score = 0
+        age = int(user_data.get('age', 0))
+        
+        # Age-based matching (30%)
+        if age >= 60 and any(tag in ['chronic_conditions', 'high_risk_patients'] for tag in plan['best_for']):
+            score += 30
+        elif 30 <= age < 60 and 'families' in plan['best_for']:
+            score += 30
+        elif age < 30 and 'young_healthy' in plan['best_for']:
+            score += 30
+        
+        # Risk level matching (30%)
+        risk_score = self.calculate_risk_score(user_data)
+        if risk_score >= 0.7 and any(tag in ['chronic_conditions', 'high_risk_patients'] for tag in plan['best_for']):
+            score += 30
+        elif 0.4 <= risk_score < 0.7 and 'families' in plan['best_for']:
+            score += 30
+        elif risk_score < 0.4 and 'young_healthy' in plan['best_for']:
+            score += 30
+        
+        # Coverage matching based on health factors (40%)
+        health_factors = self.get_health_factors(user_data)
+        coverage_score = 0
+        if health_factors:
+            if plan['coverage']['specialist_visits'] >= 85:
+                coverage_score += 10
+            if plan['coverage']['emergency_care'] >= 85:
+                coverage_score += 10
+            if plan['coverage']['hospitalization'] >= 85:
+                coverage_score += 10
+            if plan['coverage']['prescription_drugs'] >= 85:
+                coverage_score += 10
+        else:
+            # If no health factors, give points for basic coverage
+            coverage_score = 40
+        
+        score += coverage_score
+        return score  # Already capped at 100 by the components
+
     def search_insurance_info(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         try:
             # Calculate risk score and determine factors
@@ -302,25 +368,35 @@ class SearchService(BasePredictionService):
             recommended_plan_key = self.determine_recommended_plan(risk_score, user_data)
             recommended_plan = self.insurance_plans[recommended_plan_key]
             
+            # Calculate personalized premium and match score
+            adjusted_premium_range = self.calculate_premium(user_data, recommended_plan['monthly_premium_range'])
+            match_score = self.calculate_match_score(user_data, recommended_plan)
+            
             # Generate health analysis
             analysis = self.generate_health_analysis(user_data, health_factors, positive_factors, risk_level)
             
-            # Prepare matched providers
+            # Prepare matched providers with insurance links and match scores
             matched_providers = []
             for plan_key, plan in self.insurance_plans.items():
-                match_score = 100 - (abs(risk_score - (list(self.insurance_plans.keys()).index(plan_key) / len(self.insurance_plans))) * 100)
+                plan_match_score = self.calculate_match_score(user_data, plan)
+                premium_range = self.calculate_premium(user_data, plan['monthly_premium_range'])
                 matched_providers.append({
                     'name': plan['provider'],
                     'website': plan['website'],
                     'plan_link': plan['plan_link'],
                     'plans': [plan['name']],
                     'features': plan['features'],
-                    'match_score': match_score,
+                    'match_score': plan_match_score,
                     'recommended_plan': plan['name'],
+                    'insurance_links': {
+                        'website': plan['website'],
+                        'plan_details': plan['plan_link']
+                    },
                     'coverage_options': [
                         {
                             'title': f"{plan['name']} Coverage",
-                            'description': f"Monthly premium range: ₹{plan['monthly_premium_range'][0]:,} - ₹{plan['monthly_premium_range'][1]:,}"
+                            'description': f"Monthly premium range: ₹{premium_range[0]:,} - ₹{premium_range[1]:,}",
+                            'link': plan['plan_link']
                         }
                     ]
                 })
@@ -342,16 +418,20 @@ class SearchService(BasePredictionService):
                     'recommendations': {
                         'coverage_level': recommended_plan['name'],
                         'premium_range': {
-                            'min': recommended_plan['monthly_premium_range'][0],
-                            'max': recommended_plan['monthly_premium_range'][1]
+                            'min': adjusted_premium_range[0],
+                            'max': adjusted_premium_range[1]
                         },
                         'coverage_types': [f"{k.replace('_', ' ').title()}: {v}%" for k, v in recommended_plan['coverage'].items()],
                         'justification': [
                             f"Risk level assessment: {risk_level.capitalize()}",
                             f"Based on identified health factors: {', '.join(health_factors) if health_factors else 'No significant health risks'}",
                             f"Positive health indicators: {', '.join(positive_factors) if positive_factors else 'None identified'}",
-                            f"Best suited for: {', '.join(recommended_plan['best_for'])}"
-                        ]
+                            f"Best suited for: {', '.join(recommended_plan['best_for'])}",
+                            f"Plan match score: {match_score}%"
+                        ],
+                        'insurance_link': recommended_plan['plan_link'],
+                        'provider_website': recommended_plan['website'],
+                        'match_score': match_score
                     }
                 }
             }
@@ -373,7 +453,10 @@ class SearchService(BasePredictionService):
                         'coverage_level': 'Standard',
                         'premium_range': {'min': 0, 'max': 0},
                         'coverage_types': [],
-                        'justification': []
+                        'justification': [],
+                        'insurance_link': '',
+                        'provider_website': '',
+                        'match_score': 0
                     }
                 }
             }

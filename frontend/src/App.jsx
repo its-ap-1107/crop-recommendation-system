@@ -61,6 +61,7 @@ function App() {
       if (data.error) {
         throw new Error(data.error)
       }
+      
       setResult(data)
       fetchAssessments()
     } catch (error) {

@@ -148,7 +148,7 @@ const HealthForm = ({ userData, setUserData, onSubmit, loading, error }) => {
       >
         <Button 
           type="submit" 
-          className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md"
+          className="w-full max-w-md mx-auto py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md flex items-center justify-center"
           disabled={loading}
         >
           {loading ? (
