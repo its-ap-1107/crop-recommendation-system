@@ -2,6 +2,16 @@ from typing import Dict, Any
 from ..config import Config
 
 class RiskAssessmentService:
+    # Risk weights for different conditions
+    HIGH_RISK_CONDITIONS = {
+        'heart_disease', 'cancer', 'stroke'
+    }
+    
+    MODERATE_RISK_CONDITIONS = {
+        'diabetes', 'hypertension', 'fatty_liver', 'thyroid',
+        'arthritis', 'obesity', 'asthma'
+    }
+    
     @staticmethod
     def analyze_health_risk(user_data: Dict[str, Any]) -> float:
         """
@@ -11,32 +21,73 @@ class RiskAssessmentService:
             risk_score = 0.0
             weights = Config.RISK_WEIGHTS
             
-            # Age factor
+            # Age factor (0.1 per decade starting from 20)
             age = float(user_data['age'])
-            risk_score += age * weights['age']
+            risk_score += min((age - 20) / 10 * 0.1, 0.3) if age > 20 else 0
             
             # BMI factor
             bmi = float(user_data['bmi'])
-            if bmi < 18.5 or bmi > 30:
-                risk_score += weights['bmi_abnormal']
+            if bmi > 30:  # Obese
+                risk_score += 0.2
+            elif bmi > 25:  # Overweight
+                risk_score += 0.1
+            elif bmi < 18.5:  # Underweight
+                risk_score += 0.1
             
             # Blood pressure factor
             bp = float(user_data['blood_pressure'])
-            if bp > 140:
-                risk_score += weights['high_blood_pressure']
+            if bp >= 160:  # Stage 2 hypertension
+                risk_score += 0.3
+            elif bp >= 140:  # Stage 1 hypertension
+                risk_score += 0.2
+            elif bp >= 120:  # Elevated
+                risk_score += 0.1
                 
-            # Other factors
+            # Cholesterol factor
+            cholesterol = float(user_data['cholesterol'])
+            if cholesterol >= 240:  # High
+                risk_score += 0.2
+            elif cholesterol >= 200:  # Borderline high
+                risk_score += 0.1
+                
+            # Smoking factor
             if user_data['smoker'].lower() == 'yes':
-                risk_score += weights['smoker']
-            if user_data['family_history'].lower() == 'yes':
-                risk_score += weights['family_history']
-            if user_data['previous_conditions'].lower() != 'none':
-                risk_score += weights['previous_conditions']
+                risk_score += 0.2
+            elif user_data['smoker'].lower() == 'occasional':
+                risk_score += 0.1
                 
+            # Exercise factor
+            exercise = user_data['exercise_frequency'].lower()
+            if exercise == 'sedentary':
+                risk_score += 0.2
+            elif exercise == 'low':
+                risk_score += 0.1
+                
+            # Family history factor
+            family_history = user_data['family_history']
+            if family_history != 'none':
+                if family_history in RiskAssessmentService.HIGH_RISK_CONDITIONS:
+                    risk_score += 0.3
+                elif family_history in RiskAssessmentService.MODERATE_RISK_CONDITIONS:
+                    risk_score += 0.2
+            
+            # Normalize and cap the risk score
             return min(risk_score, 1.0)
             
         except Exception as e:
             raise ValueError(f"Error calculating risk score: {str(e)}")
+    
+    @staticmethod
+    def get_risk_level(risk_score: float) -> str:
+        """
+        Converts a risk score to a risk level string.
+        """
+        if risk_score >= 0.7:
+            return "high"
+        elif risk_score >= 0.4:
+            return "moderate"
+        else:
+            return "low"
     
     @staticmethod
     def generate_recommendation_prompt(user_data: Dict[str, Any], risk_score: float) -> str:
