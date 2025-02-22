@@ -50,18 +50,28 @@ def analyze_insurance():
         # Calculate health risk
         risk_score = RiskAssessmentService.analyze_health_risk(user_data)
         
-        # Get relevant insurance information using Tavily
-        search_results = search_service.search_insurance_info(user_data)
+        # Get relevant insurance information using search service
+        search_data = search_service.search_insurance_info(user_data)
         
         # Generate AI recommendation using both user data and search results
-        recommendation = ai_service.generate_recommendation(user_data, search_results)
+        recommendation = ai_service.generate_recommendation(user_data, search_data.get('search_results', []))
         
         # Store assessment
         assessment_data = {
             'user_data': user_data,
             'risk_score': risk_score,
             'recommendation': recommendation,
-            'search_results': search_results,
+            'search_results': search_data.get('search_results', []),
+            'providers': search_data.get('providers', []),
+            'risk_assessment': search_data.get('risk_assessment', {
+                'risk_level': 'unknown',
+                'health_factors': [],
+                'recommendations': {
+                    'coverage_level': 'Standard',
+                    'justification': [],
+                    'coverage_types': []
+                }
+            }),
             'timestamp': datetime.utcnow()
         }
         
@@ -75,7 +85,17 @@ def analyze_insurance():
         response_data = {
             'risk_score': risk_score,
             'recommendation': recommendation,
-            'search_results': search_results[:3]  # Send top 3 most relevant results
+            'providers': search_data.get('providers', []),
+            'risk_assessment': search_data.get('risk_assessment', {
+                'risk_level': 'unknown',
+                'health_factors': [],
+                'recommendations': {
+                    'coverage_level': 'Standard',
+                    'justification': [],
+                    'coverage_types': []
+                }
+            }),
+            'search_results': search_data.get('search_results', [])
         }
         
         if assessment_id:
@@ -85,7 +105,10 @@ def analyze_insurance():
         
     except Exception as e:
         print(f"Error in analyze_insurance: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'error': 'An error occurred while processing your request. Please try again.',
+            'details': str(e)
+        }), 500
 
 @app.route('/api/assessments', methods=['GET'])
 def get_assessments():

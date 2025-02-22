@@ -4,7 +4,7 @@ import { Input } from './components/Input'
 import { Select } from './components/Select'
 import { Card } from './components/Card'
 import { Tabs, TabPanel } from './components/Tabs'
-import { FaHeartbeat, FaRunning, FaUserMd, FaHistory, FaChartLine } from 'react-icons/fa'
+import { FaHeartbeat, FaRunning, FaUserMd, FaHistory, FaChartLine, FaShieldAlt, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 
 function App() {
@@ -95,8 +95,8 @@ function App() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold text-indigo-900 mb-2">
-            AI Health Insurance Assistant
-          </h1>
+          AI Sure
+        </h1>
           <p className="text-gray-600 text-lg">
             Get personalized insurance recommendations based on your health profile
           </p>
@@ -219,11 +219,11 @@ function App() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button 
-                    type="submit" 
+                <Button 
+                  type="submit" 
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md"
-                    disabled={loading}
-                  >
+                  disabled={loading}
+                >
                     {loading ? (
                       <div className="flex items-center justify-center">
                         <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@ function App() {
                     ) : (
                       'Get Insurance Recommendation'
                     )}
-                  </Button>
+                </Button>
                 </motion.div>
               </form>
             </Card>
@@ -249,7 +249,7 @@ function App() {
                 <Card className="mt-8 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Insurance Recommendation</h2>
                   <div className="space-y-8">
-                    <div>
+                  <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                         <FaChartLine className="mr-2" />
                         Risk Assessment
@@ -273,8 +273,109 @@ function App() {
                           <span>Moderate Risk</span>
                           <span>High Risk</span>
                         </div>
+                        {result.health_factors && result.health_factors.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-700 mb-2">Health Factors:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {result.health_factors.map((factor, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-white rounded-full text-sm text-gray-700 border border-gray-200"
+                                >
+                                  {factor}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                  </div>
+                  
+                    {result.providers && result.providers.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                          <FaShieldAlt className="mr-2" />
+                          Recommended Insurance Providers
+                        </h3>
+                        <div className="space-y-4">
+                          {result.providers.map((provider, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all"
+                            >
+                              <div className="flex justify-between items-start mb-4">
+                  <div>
+                                  <h4 className="text-xl font-semibold text-indigo-700">{provider.name}</h4>
+                                  <div className="flex items-center mt-1">
+                                    <div className="flex items-center">
+                                      <span className="text-sm font-medium text-gray-600">Match Score:</span>
+                                      <span className="ml-2 text-sm font-semibold text-indigo-600">{provider.match_score}%</span>
+                                    </div>
+                                    <span className="mx-2 text-gray-300">|</span>
+                                    <div className="flex items-center">
+                                      <span className="text-sm font-medium text-gray-600">Recommended Plan:</span>
+                                      <span className={`ml-2 text-sm font-semibold ${
+                                        provider.recommended_plan === 'Premium' ? 'text-purple-600' :
+                                        provider.recommended_plan === 'Standard' ? 'text-blue-600' :
+                                        'text-green-600'
+                                      }`}>
+                                        {provider.recommended_plan}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center">
+                                  <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors"
+                                  >
+                                    View Details
+                                  </motion.button>
+                                </div>
+                  </div>
+                  
+                              {provider.features && provider.features.length > 0 && (
+                                <div className="mt-4">
+                                  <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                    <FaCheckCircle className="mr-2 text-green-500" />
+                                    Key Features
+                                  </h5>
+                                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {provider.features.map((feature, idx) => (
+                                      <li key={idx} className="flex items-start">
+                                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 mr-2"></span>
+                                        <span className="text-sm text-gray-600">{feature}</span>
+                                      </li>
+                      ))}
+                    </ul>
+                                </div>
+                              )}
+
+                              {provider.coverage_options && provider.coverage_options.length > 0 && (
+                                <div className="mt-4">
+                                  <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                    <FaExclamationTriangle className="mr-2 text-yellow-500" />
+                                    Coverage Options
+                                  </h5>
+                                  <div className="space-y-2">
+                                    {provider.coverage_options.map((option, idx) => (
+                                      <div key={idx} className="bg-gray-50 p-3 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-700">{option.title}</p>
+                                        <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
@@ -317,8 +418,8 @@ function App() {
                         </div>
                       </div>
                     )}
-                  </div>
-                </Card>
+                </div>
+              </Card>
               </motion.div>
             )}
           </TabPanel>
@@ -332,18 +433,18 @@ function App() {
                 ) : (
                   assessments.map((assessment) => (
                     <motion.div
-                      key={assessment._id}
+                    key={assessment._id}
                       whileHover={{ scale: 1.02 }}
                       className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={() => viewAssessment(assessment._id)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
+                    onClick={() => viewAssessment(assessment._id)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
                           <div className="flex items-center mb-2">
                             <span className={`inline-block w-3 h-3 rounded-full mr-2 ${getRiskColor(assessment.risk_score)}`}></span>
                             <p className="font-semibold text-gray-900">
-                              Risk Score: {(assessment.risk_score * 100).toFixed(1)}%
-                            </p>
+                          Risk Score: {(assessment.risk_score * 100).toFixed(1)}%
+                        </p>
                           </div>
                           <p className="text-sm text-gray-600">
                             Age: {assessment.user_data.age} | 
@@ -351,16 +452,16 @@ function App() {
                             BP: {assessment.user_data.blood_pressure}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {new Date(assessment.timestamp).toLocaleString()}
-                          </p>
-                        </div>
+                          {new Date(assessment.timestamp).toLocaleString()}
+                        </p>
+                      </div>
                         <Button variant="outline" className="flex items-center">
-                          View Details
+                        View Details
                           <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                           </svg>
-                        </Button>
-                      </div>
+                      </Button>
+                    </div>
                     </motion.div>
                   ))
                 )}
@@ -382,7 +483,7 @@ function App() {
                   </div>
                   
                   <div className="space-y-8">
-                    <div>
+                  <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Health Profile</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <div className="bg-gray-50 p-4 rounded-lg">
@@ -410,9 +511,9 @@ function App() {
                           <p className="text-lg font-semibold">{selectedAssessment.user_data.exercise_frequency}</p>
                         </div>
                       </div>
-                    </div>
-
-                    <div>
+                  </div>
+                  
+                  <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Risk Assessment</h3>
                       <div className="bg-gray-100 p-6 rounded-lg">
                         <div className="flex items-center mb-2">
@@ -468,8 +569,8 @@ function App() {
                         </div>
                       </div>
                     )}
-                  </div>
-                </Card>
+                </div>
+              </Card>
               </motion.div>
             )}
           </TabPanel>

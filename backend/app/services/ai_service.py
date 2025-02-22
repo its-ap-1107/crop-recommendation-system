@@ -45,11 +45,14 @@ class AIService:
             search_context = ""
             if search_results:
                 search_context = "\n\nRelevant insurance information from trusted sources:\n"
-                for idx, result in enumerate(search_results[:3], 1):  # Use top 3 results
-                    search_context += f"\nSource {idx}:\n"
-                    search_context += f"Title: {result.get('title', '')}\n"
-                    search_context += f"Content Summary: {result.get('content', '')[:300]}...\n"  # Limit content length
-                    search_context += f"URL: {result.get('url', '')}\n"
+                for idx, result in enumerate(search_results, 1):
+                    if isinstance(result, dict):
+                        search_context += f"\nSource {idx}:\n"
+                        search_context += f"Title: {result.get('title', '')}\n"
+                        content = result.get('content', '')
+                        if content:
+                            search_context += f"Content Summary: {content[:300]}...\n"
+                        search_context += f"URL: {result.get('url', '')}\n"
             
             # Create the full prompt
             prompt = f"""Based on the following patient profile and insurance market data, provide a detailed insurance recommendation:
@@ -109,12 +112,8 @@ Format the response in clear sections with bullet points for easy reading."""
             print("AI recommendation generated successfully")  # Debug log
             return recommendation
             
-        except httpx.HTTPError as e:
-            error_msg = f"HTTP error occurred: {str(e)}"
-            print(error_msg)
-            raise Exception(error_msg)
         except Exception as e:
-            error_msg = f"Failed to generate AI recommendation: {str(e)}"
+            error_msg = f"Error generating AI recommendation: {str(e)}"
             print(error_msg)
             raise Exception(error_msg)
             
