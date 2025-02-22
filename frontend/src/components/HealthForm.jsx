@@ -42,12 +42,14 @@ const HealthForm = ({ userData, setUserData, onSubmit, loading, error }) => {
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <FormField label="Age">
+        <FormField label="Age" hint="18-100 years">
           <Input
             type="number"
             value={userData.age}
             onChange={(e) => setUserData({...userData, age: e.target.value})}
             required
+            min="18"
+            max="100"
             className="w-full"
             placeholder="Enter your age"
           />
@@ -66,35 +68,41 @@ const HealthForm = ({ userData, setUserData, onSubmit, loading, error }) => {
           </Select>
         </FormField>
         
-        <FormField label="BMI" hint="Body Mass Index">
+        <FormField label="BMI" hint="Body Mass Index (15-40)">
           <Input
             type="number"
             step="0.1"
             value={userData.bmi}
             onChange={(e) => setUserData({...userData, bmi: e.target.value})}
             required
+            min="15"
+            max="40"
             className="w-full"
             placeholder="Enter your BMI"
           />
         </FormField>
 
-        <FormField label="Blood Pressure" hint="Systolic blood pressure in mmHg">
+        <FormField label="Blood Pressure" hint="Systolic blood pressure (90-200 mmHg)">
           <Input
             type="number"
             value={userData.blood_pressure}
             onChange={(e) => setUserData({...userData, blood_pressure: e.target.value})}
             required
+            min="90"
+            max="200"
             className="w-full"
             placeholder="Systolic BP (e.g., 120)"
           />
         </FormField>
 
-        <FormField label="Cholesterol" hint="Total cholesterol in mg/dL">
+        <FormField label="Cholesterol" hint="Total cholesterol (100-300 mg/dL)">
           <Input
             type="number"
             value={userData.cholesterol}
             onChange={(e) => setUserData({...userData, cholesterol: e.target.value})}
             required
+            min="100"
+            max="300"
             className="w-full"
             placeholder="Total cholesterol"
           />

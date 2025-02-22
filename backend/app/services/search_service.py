@@ -404,59 +404,39 @@ class SearchService(BasePredictionService):
             # Sort providers by match score
             matched_providers.sort(key=lambda x: x['match_score'], reverse=True)
             
+            # Format health factors to remove underscores
+            formatted_health_factors = [
+                factor.replace('_', ' ').title()
+                for factor in health_factors
+            ]
+
             return {
                 'providers': matched_providers[:4],
                 'risk_level': risk_level,
-                'health_factors': health_factors,
+                'health_factors': formatted_health_factors,  # Use formatted factors
                 'search_results': [],
                 'risk_score': risk_score,
                 'ai_analysis': analysis,
                 'risk_assessment': {
                     'risk_level': risk_level,
-                    'risk_factors': health_factors,
+                    'risk_factors': formatted_health_factors,  # Use formatted factors
                     'positive_factors': positive_factors,
                     'recommendations': {
                         'coverage_level': recommended_plan['name'],
-                        'premium_range': {
-                            'min': adjusted_premium_range[0],
-                            'max': adjusted_premium_range[1]
-                        },
-                        'coverage_types': [f"{k.replace('_', ' ').title()}: {v}%" for k, v in recommended_plan['coverage'].items()],
+                        'premium_range': adjusted_premium_range,
+                        'coverage_types': recommended_plan['features'],
                         'justification': [
                             f"Risk level assessment: {risk_level.capitalize()}",
-                            f"Based on identified health factors: {', '.join(health_factors) if health_factors else 'No significant health risks'}",
+                            f"Based on identified health factors: {', '.join(formatted_health_factors) if formatted_health_factors else 'No significant health risks'}",
                             f"Positive health indicators: {', '.join(positive_factors) if positive_factors else 'None identified'}",
                             f"Best suited for: {', '.join(recommended_plan['best_for'])}",
                             f"Plan match score: {match_score}%"
                         ],
-                        'insurance_link': recommended_plan['plan_link'],
-                        'provider_website': recommended_plan['website'],
-                        'match_score': match_score
+                        'insurance_link': recommended_plan['plan_link']
                     }
                 }
             }
             
         except Exception as e:
             print(f"Error in search_insurance_info: {str(e)}")
-            return {
-                'providers': [],
-                'risk_level': 'unknown',
-                'health_factors': [],
-                'search_results': [],
-                'risk_score': 0.0,
-                'ai_analysis': None,
-                'risk_assessment': {
-                    'risk_level': 'unknown',
-                    'risk_factors': [],
-                    'positive_factors': [],
-                    'recommendations': {
-                        'coverage_level': 'Standard',
-                        'premium_range': {'min': 0, 'max': 0},
-                        'coverage_types': [],
-                        'justification': [],
-                        'insurance_link': '',
-                        'provider_website': '',
-                        'match_score': 0
-                    }
-                }
-            }
+            raise

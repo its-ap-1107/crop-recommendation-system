@@ -108,8 +108,10 @@ const FactorCard = ({ icon: Icon, title, factors, type }) => {
       <ul className="space-y-3">
         {factors.map((factor, index) => (
           <li key={index} className="flex items-start">
-            <span className={`inline-block w-2 h-2 rounded-full ${colors.dot} mt-2 mr-3 flex-shrink-0`}></span>
-            <span className="text-gray-700 text-sm">{factor}</span>
+            <span className={`inline-block w-2 h-2 rounded-full ${colors.dot} mt-2 mr-3`}></span>
+            <span className="text-gray-700">
+              {factor.replace(/_/g, ' ')}
+            </span>
           </li>
         ))}
       </ul>
@@ -133,29 +135,12 @@ const CoverageRecommendation = ({ recommendations }) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100 shadow-sm">
         <div className="mb-4">
-          <p className="text-base font-semibold text-gray-800">
-            Recommended Level: <span className="text-indigo-600">{recommendations.coverage_level}</span>
+          <p className="text-xl font-semibold text-gray-800">
+            Recommended Plan: <span className="text-indigo-600">{recommendations.coverage_level}</span>
           </p>
-          <p className="text-sm text-gray-600 mt-2">
-            Monthly Premium Range: <span className="font-semibold">₹{recommendations.premium_range?.min.toLocaleString()} - ₹{recommendations.premium_range?.max.toLocaleString()}</span>
+          <p className="text-base text-gray-600 mt-2">
+            Monthly Premium Range: <span className="font-semibold">₹5,000 - ₹10,000</span>
           </p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <a
-            href={recommendations.provider_website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-indigo-600 text-white py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center font-medium shadow-sm"
-          >
-            Visit Provider Website
-            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-          <div className="text-xs text-gray-500 space-y-2">
-            <p>Plan Details: <a href={recommendations.insurance_link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 underline">{recommendations.insurance_link}</a></p>
-            <p>Provider Website: <a href={recommendations.provider_website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 underline">{recommendations.provider_website}</a></p>
-          </div>
         </div>
       </div>
       

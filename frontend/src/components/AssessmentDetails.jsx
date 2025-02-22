@@ -1,5 +1,3 @@
-
-
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { FaCheckCircle, FaExclamationTriangle, FaInfoCircle, FaShieldAlt } from 'react-icons/fa';
@@ -86,6 +84,14 @@ const AssessmentDetails = ({ assessment }) => {
     }
   } = risk_assessment;
 
+  // Format risk factors to remove underscores and capitalize
+  const formatRiskFactor = (factor) => {
+    return factor
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -105,7 +111,7 @@ const AssessmentDetails = ({ assessment }) => {
         <div className="bg-gray-100 p-6 rounded-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <FaExclamationTriangle className={`text-${risk_level === 'high' ? 'red' : risk_level === 'moderate' ? 'yellow' : 'green'}-500`} />
+              <FaExclamationTriangle className={`text${risk_level === 'high' ? 'red' : risk_level === 'moderate' ? 'yellow' : 'green'}500`} />
               <span className="font-semibold">Risk Level:</span>
               <RiskBadge level={risk_level} />
             </div>
@@ -127,9 +133,8 @@ const AssessmentDetails = ({ assessment }) => {
               </h4>
               <ul className="space-y-2">
                 {risk_factors.map((factor, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="inline-block w-2 h-2 rounded-full bg-red-400 mt-2 mr-3"></span>
-                    <span className="text-gray-700">{factor}</span>
+                  <li key={index} className="text-gray-700">
+                    • {formatRiskFactor(factor)}
                   </li>
                 ))}
               </ul>

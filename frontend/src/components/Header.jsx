@@ -15,10 +15,10 @@ const Header = () => {
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
           className="relative"
         >
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur opacity-75"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-green-200 rounded-full blur opacity-75"></div>
           <div className="relative bg-white p-4 rounded-full">
             <div className="flex space-x-2">
-              <FaShieldAlt className="h-8 w-8 text-purple-600" />
+              <FaShieldAlt className="h-8 w-8 text-green-600" />
             </div>
           </div>
         </motion.div>
@@ -28,7 +28,7 @@ const Header = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 mb-4 font-poppins"
+        className="text-6xl md:text-5xl text-[#17B169] font-semibold mb-4"
       >
         AI Sure
       </motion.h1>

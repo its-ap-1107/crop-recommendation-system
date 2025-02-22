@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card } from './components/Card'
-import { Tabs, TabPanel } from './components/Tabs'
+import { Tabs, TabPanel } from './components/Tab'
 import { FaUserMd, FaHistory } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import RiskAssessment from './components/RiskAssessment'
